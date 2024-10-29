@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("Access-Control-Allow-Headers: Content-Type");
     exit(0);
 }
-
+phpinfo();
 try {
     // Database connection
     $dsn = "mysql:host=sql12.freesqldatabase.com;dbname=sql12739212;charset=utf8";
