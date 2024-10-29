@@ -6,34 +6,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     header("Access-Control-Allow-Headers: Content-Type");
     exit(0);
 }
-phpinfo();
-try {
-    // Database connection
-    $dsn = "mysql:host=sql12.freesqldatabase.com;dbname=sql12739212;charset=utf8";
-    $username = "sql12739212";
-    $password = "j85ZMmHWMt";
-    $pdo = new PDO($dsn, $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Get visitor's IP address
-    $ip_address = $_SERVER['REMOTE_ADDR'];
-    // Get today's date
-    $date = date('Y-m-d');
+// Database connection
+$servername = "sql12.freesqldatabase.com";  
+$username = "sql12739212";  
+$password = "j85ZMmHWMt";  
+$dbname = "sql12739212";        
 
-    // Check if IP already exists for today
-    $stmt = $pdo->prepare("SELECT * FROM visits WHERE ip_address = ? AND date = ?");
-    $stmt->execute([$ip_address, $date]);
+$conn = new mysqli($servername, $username, $password, $dbname, 3306);
 
-    if ($stmt->rowCount() > 0) {
-        // IP exists for today; update visit count
-        $stmt = $pdo->prepare("UPDATE visits SET visit_count = visit_count + 1 WHERE ip_address = ? AND date = ?");
-        $stmt->execute([$ip_address, $date]);
-    } else {
-        // IP does not exist for today; insert new record
-        $stmt = $pdo->prepare("INSERT INTO visits (ip_address, visit_count, date) VALUES (?, 1, ?)");
-        $stmt->execute([$ip_address, $date]);
-    }
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
+
+// Get visitor's IP address
+$ip_address = $_SERVER['REMOTE_ADDR'];
+
+// Get today's date
+$date = date('Y-m-d');
+
+// Check if IP already exists for today
+$sql = "SELECT * FROM visits WHERE ip_address = ? AND date = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $ip_address, $date);
+$stmt->execute();
+$result = $stmt->get_result();
+phpinfo();
+if ($result->num_rows > 0) {
+    // IP exists for today; update visit count
+    $sql = "UPDATE visits SET visit_count = visit_count + 1 WHERE ip_address = ? AND date = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $ip_address, $date);
+} else {
+    // IP does not exist for today; insert new record
+    $sql = "INSERT INTO visits (ip_address, visit_count, date) VALUES (?, 1, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $ip_address, $date);
+}
+
+if (!$stmt->execute()) {
+    die("Execution failed: " . $stmt->error);
+}
+
+$stmt->close();
+$conn->close();
 ?>
