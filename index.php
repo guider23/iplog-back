@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit(0);
 }
 
-
+phpinfo();
 // Database connection
 $servername = "sql12.freesqldatabase.com";  
 $username = "sql12739212";  
